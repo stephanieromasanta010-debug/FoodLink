@@ -1,5 +1,6 @@
 <?php
 define('PREVENT_DIRECT_ACCESS', TRUE);
+date_default_timezone_set('Asia/Manila');
 /**
  * ------------------------------------------------------------------
  * LavaLust - an opensource lightweight PHP MVC Framework

@@ -44,4 +44,66 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 */
 /** @var object $router **/
 
-$router->get('/', 'Welcome::index');
+
+// Default route goes to the Login page
+$router->get('/', 'Landing::index'); 
+$router->get('/login', 'Auth::index');
+
+$router->get('/register', 'Auth::register');               
+$router->post('/process_register', 'Auth::process_register'); 
+
+// Handle the login form submission 
+$router->post('/process_login', 'Auth::process_login');
+$router->get('/logout', 'Auth::logout');
+
+// Customer Routes
+$router->get('/customer', 'Customer::dashboard');
+$router->get('/customer/browse', 'Customer::browse');     
+$router->get('/customer/orders', 'Customer::orders');
+
+// Bagong Routes para sa Ordering
+$router->post('/customer/add_to_cart', 'Customer::add_to_cart');
+$router->get('/customer/checkout', 'Customer::checkout');
+$router->post('/customer/place_order', 'Customer::place_order');
+
+// Vendor Routes
+$router->get('/vendor', 'Vendor::dashboard');
+$router->get('/vendor/menu', 'Vendor::menu');       
+$router->get('/vendor/orders', 'Vendor::orders');   
+$router->get('/register_vendor', 'Auth::register_vendor');
+$router->post('/process_vendor_register', 'Auth::process_vendor_register');
+
+// CRUD Routes for Products
+$router->get('/vendor/menu/create', 'Vendor::create_product');
+$router->post('/vendor/menu/store', 'Vendor::store_product');
+$router->get('/vendor/menu/edit', 'Vendor::edit_product');     
+$router->post('/vendor/menu/update', 'Vendor::update_product');  
+$router->get('/vendor/menu/delete', 'Vendor::delete_product');   
+
+// Vendor Order Update Route
+$router->get('/vendor/orders/update_status', 'Vendor::update_order_status');
+
+// Delivery Routes
+$router->get('/delivery', 'Delivery::dashboard');
+$router->get('/delivery/tasks', 'Delivery::tasks'); 
+$router->get('/delivery/update_status', 'Delivery::update_status');
+$router->get('/register_delivery', 'Auth::register_delivery');
+$router->post('/process_delivery_register', 'Auth::process_delivery_register');
+
+$router->post('/api/login', 'Api::login');
+$router->get('/api/products', 'Api::products');
+$router->post('/api/add_product', 'Api::add_product');
+$router->post('/api/update_product', 'Api::update_product');
+$router->get('/api/delete_product', 'Api::delete_product');
+$router->get('/api/orders', 'Api::orders');
+$router->post('/api/update_order_status', 'Api::update_order_status');
+$router->post('/api/place_order', 'Api::place_order');
+
+$router->post('/api/create_checkout_session', 'Api::create_checkout_session');
+$router->get('/api/verify_payment', 'Api::verify_payment');
+$router->post('/api/upload_proof', 'Api::upload_proof');
+$router->post('/api/update_order_status', 'Api::update_order_status');
+$router->get('/api/order_details', 'Api::order_details');
+$router->get('/api/get_coordinates', 'Api::get_coordinates');
+$router->get('/api/calculate_distance', 'Api::calculate_distance');
+$router->get('/api/geocode_address', 'Api::geocode_address');
