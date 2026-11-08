@@ -2,13 +2,18 @@ ARG PHP_VERSION=8.2
 
 FROM php:${PHP_VERSION}-apache
 
-# Install PDO MySQL and other required extensions (curl, mbstring, etc.)
+# Install system dependencies for PHP extensions
+RUN apt-get update && apt-get install -y \
+    libonig-dev \
+    libcurl4-openssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PDO MySQL and other required extensions
 RUN docker-php-ext-install pdo pdo_mysql curl mbstring
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# --- STRIPE & COMPOSER SETUP ---
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -20,7 +25,6 @@ COPY composer.json ./
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
-# --------------------------------
 
 # Allow .htaccess overrides
 RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
