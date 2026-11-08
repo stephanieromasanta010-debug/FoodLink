@@ -2,18 +2,21 @@ ARG PHP_VERSION=8.2
 
 FROM php:${PHP_VERSION}-apache
 
-# Install PDO MySQL
-RUN docker-php-ext-install pdo pdo_mysql
+# Install PDO MySQL and other required extensions (curl, mbstring, etc.)
+RUN docker-php-ext-install pdo pdo_mysql curl mbstring
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# --- IDINAGDAG PARA SA STRIPE ---
+# --- STRIPE & COMPOSER SETUP ---
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy only composer files first
-COPY composer.json composer.lock* ./
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy composer files first (for Docker caching)
+COPY composer.json ./
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
@@ -35,11 +38,11 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot ${APACHE_DOCUMENT_ROOT}|g' /etc/apache2/sites-available/000-default.conf \
     && sed -i 's|<Directory /var/www/html>|<Directory ${APACHE_DOCUMENT_ROOT}>|g' /etc/apache2/apache2.conf
 
-# BAGONG DAGDAG: Payagan ang OPTIONS method sa Apache
+# Payagan ang OPTIONS method sa Apache (CORS)
 RUN echo '<IfModule mod_headers.c>\n    Header set Access-Control-Allow-Origin "*"\n</IfModule>' > /etc/apache2/conf-available/cors.conf \
     && a2enconf cors
 
-# BAGONG DAGDAG: Payagan ang OPTIONS sa Apache Limit
+# Payagan ang OPTIONS sa Apache Limit
 RUN echo '<Directory /var/www/html/public>\n    <LimitExcept GET POST OPTIONS>\n        Require all denied\n    </LimitExcept>\n</Directory>' >> /etc/apache2/apache2.conf
 
 EXPOSE 80
