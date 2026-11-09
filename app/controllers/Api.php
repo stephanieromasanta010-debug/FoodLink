@@ -193,8 +193,8 @@ class Api extends Controller {
         $session = \Stripe\Checkout\Session::create([
             'line_items' => $line_items,
             'mode' => 'payment',
-            'success_url' => 'https://foodlink-react.onrender.com/customer/orders?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => 'https://foodlink-react.onrender.com/customer/checkout',
+            'success_url' => 'https://food-link-react.vercel.app/customer/orders?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => 'https://food-link-react.vercel.app/customer/checkout',
             'metadata' => [
                 'customer_id' => $customer_id,
                 'vendor_id' => $vendor_id,
