@@ -6,9 +6,9 @@
 !.env.example
 
 # Dependencies
-vendor/
-app/vendor/
-composer.lock
+#vendor/
+#app/vendor/
+#composer.lock
 
 # Cache & Logs
 runtime/*
