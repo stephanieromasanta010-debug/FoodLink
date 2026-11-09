@@ -9,6 +9,18 @@ class Api extends Controller {
 
         $this->db->raw("SET time_zone = '+08:00'");
 
+        $allowed_origins = [
+            'https://food-link-react.vercel.app',
+            'https://foodlink-react.onrender.com'
+        ];
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        if (in_array($origin, $allowed_origins)) {
+            header("Access-Control-Allow-Origin: $origin");
+        }
+        header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+        header("Access-Control-Allow-Headers: Content-Type, Authorization");
+        header("Access-Control-Allow-Credentials: true");
+
 
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
         http_response_code(200);
@@ -193,8 +205,8 @@ class Api extends Controller {
         $session = \Stripe\Checkout\Session::create([
             'line_items' => $line_items,
             'mode' => 'payment',
-            'success_url' => 'https://food-link-react.vercel.app/customer/orders?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => 'https://food-link-react.vercel.app/customer/checkout',
+            'success_url' => ($_SERVER['HTTP_ORIGIN'] ?? 'https://food-link-react.vercel.app') . '/customer/orders?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => ($_SERVER['HTTP_ORIGIN'] ?? 'https://food-link-react.vercel.app') . '/customer/checkout',
             'metadata' => [
                 'customer_id' => $customer_id,
                 'vendor_id' => $vendor_id,
@@ -218,11 +230,31 @@ public function verify_payment() {
 
     $session_id = $_GET['session_id'] ?? '';
 
+    if (empty($session_id)) {
+        echo json_encode(['status' => 'error', 'message' => 'No session ID provided']);
+        return;
+    }
+
     try {
+        // 1. CHECK MUNA KUNG EXISTING NA ANG ORDER (Para hindi mag-doble kapag ni-refresh)
+        $existing_order = $this->db->table('orders')->where('payment_reference', $session_id)->get();
+        
+        if ($existing_order) {
+            echo json_encode([
+                'status' => 'success', 
+                'order_id' => $existing_order['id'], 
+                'message' => 'Order already exists'
+            ]);
+            return;
+        }
+
+        // 2. KUNG WALA PA, KUNIN ANG SESSION SA STRIPE
         $session = \Stripe\Checkout\Session::retrieve($session_id);
+        
         if ($session->payment_status === 'paid') {
             $meta = $session->metadata;
 
+            // 3. I-SAVE ANG BAGONG ORDER
             $order_id = $this->db->table('orders')->insert([
                 'customer_id' => $meta->customer_id,
                 'vendor_id' => $meta->vendor_id,
@@ -232,8 +264,8 @@ public function verify_payment() {
                 'payment_method' => 'Stripe (Card)',
                 'payment_status' => 'paid',
                 'payment_reference' => $session_id,
-                'delivery_fee' => $meta->delivery_fee ?? 0,   // <-- BAGO
-                'distance_km' => $meta->distance_km ?? 0      // <-- BAGO
+                'delivery_fee' => $meta->delivery_fee ?? 0,
+                'distance_km' => $meta->distance_km ?? 0
             ]);
 
             echo json_encode(['status' => 'success', 'order_id' => $order_id]);

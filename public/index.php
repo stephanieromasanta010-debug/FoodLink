@@ -6,6 +6,7 @@ date_default_timezone_set('Asia/Manila');
 $allowed_origins = [
     'https://food-link-react.vercel.app',
     'https://foodlink-qqin.onrender.com',
+    'https://foodlink-react.onrender.com',
     'http://localhost:5173',
     'http://127.0.0.1:5173'
 ];
