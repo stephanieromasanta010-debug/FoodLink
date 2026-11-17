@@ -117,3 +117,5 @@ $router->get('/api/order_details', 'Api::order_details');
 $router->get('/api/get_coordinates', 'Api::get_coordinates');
 $router->get('/api/calculate_distance', 'Api::calculate_distance');
 $router->get('/api/geocode_address', 'Api::geocode_address');
+
+$router->get('/api/reverse_geocode', 'Geocode::reverse');
