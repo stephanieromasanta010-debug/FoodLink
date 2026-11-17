@@ -4,13 +4,11 @@ class Geocode extends Controller
 {
     public function reverse()
     {
-        // ✅ I-load ang API library para magamit ang respond()
-        $this->call->library('api');
-
         // CORS Headers
         header('Access-Control-Allow-Origin: https://foodlink-react.onrender.com');
         header('Access-Control-Allow-Methods: GET, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization');
+        header('Content-Type: application/json'); // ✅ Importante ito!
 
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
             exit(0);
@@ -21,10 +19,11 @@ class Geocode extends Controller
         $lng = $_GET['lng'] ?? null;
 
         if (empty($lat) || empty($lng)) {
-            return $this->api->respond([
+            echo json_encode([
                 'status' => 'error',
                 'message' => 'Missing lat/lng parameters'
             ]);
+            exit;
         }
 
         // Option 1: Google Maps (Kung may API key ka sa .env)
@@ -36,10 +35,11 @@ class Geocode extends Controller
             if ($googleResponse) {
                 $googleData = json_decode($googleResponse, true);
                 if (isset($googleData['results'][0]['formatted_address'])) {
-                    return $this->api->respond([
+                    echo json_encode([
                         'status' => 'success',
                         'address' => $googleData['results'][0]['formatted_address']
                     ]);
+                    exit;
                 }
             }
         }
@@ -71,15 +71,18 @@ class Geocode extends Controller
             $shortAddress = implode(', ', $parts);
             $finalAddress = $shortAddress ?: ($data['display_name'] ?? "GPS: {$lat}, {$lng}");
 
-            return $this->api->respond([
+            echo json_encode([
                 'status' => 'success',
                 'address' => $finalAddress
             ]);
+            exit;
         }
 
-        return $this->api->respond([
+        // Fallback kung walang nakuha
+        echo json_encode([
             'status' => 'success',
             'address' => "GPS: {$lat}, {$lng}"
         ]);
+        exit;
     }
 }
