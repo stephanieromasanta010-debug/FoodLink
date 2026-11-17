@@ -4,6 +4,7 @@ class Geocode extends Controller
 {
     public function reverse()
     {
+        // CORS Headers
         header('Access-Control-Allow-Origin: https://foodlink-react.onrender.com');
         header('Access-Control-Allow-Methods: GET, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -11,9 +12,10 @@ class Geocode extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
             exit(0);
         }
-        // Kunin ang lat at lng mula sa URL query parameters
-        $lat = $this->request->getGet('lat');
-        $lng = $this->request->getGet('lng');
+
+        // ✅ TAMANG PARAAN: Gamitin ang $_GET para sa query parameters
+        $lat = $_GET['lat'] ?? null;
+        $lng = $_GET['lng'] ?? null;
 
         if (empty($lat) || empty($lng)) {
             return $this->response->setJSON([
@@ -27,7 +29,7 @@ class Geocode extends Controller
         if ($googleKey) {
             $googleUrl = "https://maps.googleapis.com/maps/api/geocode/json?latlng={$lat},{$lng}&key={$googleKey}";
             $googleResponse = @file_get_contents($googleUrl);
-            
+
             if ($googleResponse) {
                 $googleData = json_decode($googleResponse, true);
                 if (isset($googleData['results'][0]['formatted_address'])) {
@@ -46,7 +48,7 @@ class Geocode extends Controller
             ]
         ];
         $context = stream_context_create($options);
-        
+
         $nominatimUrl = "https://nominatim.openstreetmap.org/reverse?format=json&lat={$lat}&lon={$lng}&zoom=18&addressdetails=1";
         $nominatimResponse = @file_get_contents($nominatimUrl, false, $context);
 
@@ -54,12 +56,11 @@ class Geocode extends Controller
             $data = json_decode($nominatimResponse, true);
             $a = $data['address'] ?? [];
 
-            // I-format nang maikli: "Sapul, Calapan City"
             $parts = [];
             if (!empty($a['suburb'])) $parts[] = $a['suburb'];
             elseif (!empty($a['village'])) $parts[] = $a['village'];
             elseif (!empty($a['neighbourhood'])) $parts[] = $a['neighbourhood'];
-            
+
             if (!empty($a['city'])) $parts[] = $a['city'];
             elseif (!empty($a['town'])) $parts[] = $a['town'];
             elseif (!empty($a['municipality'])) $parts[] = $a['municipality'];
@@ -73,7 +74,6 @@ class Geocode extends Controller
             ]);
         }
 
-        // Fallback kung nabigo lahat
         return $this->response->setJSON([
             'status' => 'success',
             'address' => "GPS: {$lat}, {$lng}"
