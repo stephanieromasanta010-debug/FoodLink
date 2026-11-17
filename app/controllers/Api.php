@@ -202,22 +202,25 @@ class Api extends Controller {
     }
 
     try {
-        $session = \Stripe\Checkout\Session::create([
-            'line_items' => $line_items,
-            'mode' => 'payment',
-            'success_url' => ($_SERVER['HTTP_ORIGIN'] ?? 'https://food-link-react.vercel.app') . '/customer/orders?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => ($_SERVER['HTTP_ORIGIN'] ?? 'https://food-link-react.vercel.app') . '/customer/checkout',
-            'metadata' => [
-                'customer_id' => $customer_id,
-                'vendor_id' => $vendor_id,
-                'address' => $address,
-                'total' => $total,
-                'delivery_fee' => $delivery_fee,   // <-- BAGO
-                'distance_km' => $distance_km      // <-- BAGO
-            ],
-        ]);
+    // ✅ Direktang gamitin ang live Render frontend URL mo
+    $frontend_url = 'https://foodlink-react.onrender.com';
 
-        echo json_encode(['id' => $session->id, 'url' => $session->url]);
+    $session = \Stripe\Checkout\Session::create([
+        'line_items' => $line_items,
+        'mode' => 'payment',
+        'success_url' => $frontend_url . '/customer/orders?session_id={CHECKOUT_SESSION_ID}',
+        'cancel_url' => $frontend_url . '/customer/checkout',
+        'metadata' => [
+            'customer_id' => $customer_id,
+            'vendor_id' => $vendor_id,
+            'address' => $address,
+            'total' => $total,
+            'delivery_fee' => $delivery_fee,   
+            'distance_km' => $distance_km      
+        ],
+    ]);
+
+    echo json_encode(['id' => $session->id, 'url' => $session->url]);
     } catch (\Exception $e) {
         http_response_code(500);
         echo json_encode(['error' => $e->getMessage()]);
