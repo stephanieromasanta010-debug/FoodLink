@@ -4,6 +4,9 @@ class Geocode extends Controller
 {
     public function reverse()
     {
+        // ✅ I-load ang API library para magamit ang respond()
+        $this->call->library('api');
+
         // CORS Headers
         header('Access-Control-Allow-Origin: https://foodlink-react.onrender.com');
         header('Access-Control-Allow-Methods: GET, OPTIONS');
@@ -13,12 +16,12 @@ class Geocode extends Controller
             exit(0);
         }
 
-        // ✅ TAMANG PARAAN: Gamitin ang $_GET para sa query parameters
+        // Kunin ang lat at lng mula sa URL query parameters
         $lat = $_GET['lat'] ?? null;
         $lng = $_GET['lng'] ?? null;
 
         if (empty($lat) || empty($lng)) {
-            return $this->response->setJSON([
+            return $this->api->respond([
                 'status' => 'error',
                 'message' => 'Missing lat/lng parameters'
             ]);
@@ -33,7 +36,7 @@ class Geocode extends Controller
             if ($googleResponse) {
                 $googleData = json_decode($googleResponse, true);
                 if (isset($googleData['results'][0]['formatted_address'])) {
-                    return $this->response->setJSON([
+                    return $this->api->respond([
                         'status' => 'success',
                         'address' => $googleData['results'][0]['formatted_address']
                     ]);
@@ -68,13 +71,13 @@ class Geocode extends Controller
             $shortAddress = implode(', ', $parts);
             $finalAddress = $shortAddress ?: ($data['display_name'] ?? "GPS: {$lat}, {$lng}");
 
-            return $this->response->setJSON([
+            return $this->api->respond([
                 'status' => 'success',
                 'address' => $finalAddress
             ]);
         }
 
-        return $this->response->setJSON([
+        return $this->api->respond([
             'status' => 'success',
             'address' => "GPS: {$lat}, {$lng}"
         ]);
